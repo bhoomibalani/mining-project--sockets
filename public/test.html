@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mining Session Test</title>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <h2>Test Mining Session with Socket.IO</h2>
+    <button onclick="startMining()">Start Mining</button>
+    <pre id="log"></pre>
+
+    <h3>Options to boost</h3>
+
+    <button
+      id="boostAds"
+      style="display: none"
+      onclick="boostMining('watch_ads')"
+    >
+      Watch Ads
+    </button>
+    <button
+      id="boostFee"
+      style="display: none"
+      onclick="boostMining('pay_fee')"
+    >
+      Pay Fee
+    </button>
+
+    <script>
+      const log = (msg) => {
+        document.getElementById("log").textContent += msg + "\n";
+      };
+
+      fetch("http://localhost:3000/api/init-session", {
+        credentials: "include", //cookie
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          log(`Session initialized: ${data.sessionId}`);
+
+          const socket = io("http://localhost:3000", {
+            withCredentials: true,
+          });
+
+          socket.on("connect", () => {
+            log("Connected to server");
+
+            socket.emit("checkSessionStatus");
+          });
+
+          // socket.on("sessionStillRunning", ({ sessionId, startAt, endAt }) => {
+          //   log(" Session still running:");
+          //   log(JSON.stringify({ sessionId, startAt, endAt }, null, 2));
+          // });
+
+          socket.on("noActiveSession", () => {
+            log("No active session found. Please start mining.");
+          });
+
+          socket.on("sessionStarted", (data) => {
+            log("Session started:");
+            log(JSON.stringify(data, null, 2));
+
+            document.getElementById("boostAds").style.display = "inline-block";
+            document.getElementById("boostFee").style.display = "inline-block";
+          });
+
+          socket.on("updatePoints", ({ earnedPoints }) => {
+            log(` Earned points: ${earnedPoints}`);
+          });
+
+          socket.on("sessionEnded", ({ sessionId }) => {
+            log(` Session ended for ${sessionId}`);
+          });
+
+          socket.on("sessionError", ({ message }) => {
+            log(` Error: ${message}`);
+          });
+
+          window.startMining = function () {
+            log(" Sending startMining event...");
+            socket.emit("startMining");
+          };
+
+          window.boostMining = function (boostType) {
+            log(`Sending boost request: ${boostType}`);
+            socket.emit("boostMining", { boostType });
+          };
+        });
+    </script>
+  </body>
+</html>
