@@ -30,9 +30,10 @@ const io = socketIo(server, {
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({
-  origin: "http://localhost:3000", 
+  origin: ["http://localhost:3000", "https://mining-project-sockets.onrender.com"], 
   credentials: true
 }));
+
 app.use(express.json());
 
 
