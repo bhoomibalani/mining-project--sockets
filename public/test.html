@@ -31,14 +31,14 @@
         document.getElementById("log").textContent += msg + "\n";
       };
 
-      fetch("http://localhost:3000/api/init-session", {
+      fetch("https://mining-project-sockets.onrender.com/api/init-session", {
         credentials: "include", //cookie
       })
         .then((res) => res.json())
         .then((data) => {
           log(`Session initialized: ${data.sessionId}`);
 
-          const socket = io("http://localhost:3000", {
+          const socket = io("https://mining-project-sockets.onrender.com", {
             withCredentials: true,
           });
 
